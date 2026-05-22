@@ -1,0 +1,11 @@
+﻿metric,value
+case_count,24.0
+intensity_match_count,20.0
+percent_match_count,22.0
+expression_match_count,20.0
+mismatch_case_count,6.0
+mean_weak_1plus_pct,61.5212
+mean_medium_2plus_pct,12.1129
+mean_strong_3plus_pct,22.1979
+mean_positive_area_pct,15.3479
+mean_positive_nuclei_pct,95.6888

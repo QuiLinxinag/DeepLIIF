@@ -1,0 +1,13 @@
+﻿task,label,metric_scope,accuracy,precision,recall,f1,support
+intensity,1,class,,0.666667,0.5,0.571429,4
+intensity,2,class,,0.666667,0.857143,0.75,7
+intensity,3,class,,1.0,0.923077,0.96,13
+intensity,overall,overall,0.833333,0.777778,0.760073,0.760476,24
+percent_score,0,class,,0.0,0.0,0.0,0
+percent_score,1,class,,0.0,0.0,0.0,0
+percent_score,2,class,,0.0,0.0,0.0,2
+percent_score,3,class,,0.916667,1.0,0.956522,22
+percent_score,overall,overall,0.916667,0.229167,0.25,0.23913,24
+expression,low,class,,0.666667,0.4,0.5,5
+expression,high,class,,0.857143,0.947368,0.9,19
+expression,overall,overall,0.833333,0.761905,0.673684,0.7,24

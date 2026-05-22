@@ -1,0 +1,8 @@
+﻿metric,value
+intensity_accuracy,0.8333333333333334
+percent_score_accuracy,0.9166666666666666
+expression_accuracy,0.8333333333333334
+intensity_match_count,20.0
+percent_score_match_count,22.0
+expression_match_count,20.0
+total_case_count,24.0

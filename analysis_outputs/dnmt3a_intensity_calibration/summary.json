@@ -1,0 +1,82 @@
+{
+  "recommended_thresholds": {
+    "t0_summary_filter": 0.442,
+    "t1_weak_to_medium": 0.631,
+    "t2_medium_to_strong": 0.7133,
+    "intensity_summary_statistic": "p90",
+    "p0_positive_nucleus": 0.0971,
+    "strong_demote_rule": {
+      "if_predicted_3plus_and_strong_pct_below": 12.0,
+      "and_weak_pct_at_or_above": 70.0,
+      "then_demote_to": 2
+    },
+    "empty_region_fallback": "If no DAB-positive regions are extracted, use nuclei p90 against T1/T2."
+  },
+  "preprocessing": {
+    "normalization": "95th-percentile white balance on bright background pixels, then DAB OD normalized by tissue DAB 99th percentile",
+    "stain_separation": "rgb2hed color deconvolution, DAB channel used for brown stain strength",
+    "region_segmentation": "DAB-positive region mask with threshold = max(DAB 70th percentile, Otsu threshold)"
+  },
+  "metrics": {
+    "intensity_accuracy": 0.8333333333333334,
+    "intensity_macro_f1": 0.7604761904761904,
+    "expression_accuracy": 0.8333333333333334,
+    "expression_macro_f1": 0.7,
+    "percent_score_accuracy": 0.9166666666666666,
+    "percent_score_macro_f1": 0.2391304347826087,
+    "intensity_confusion_matrix": [
+      [
+        2,
+        2,
+        0
+      ],
+      [
+        1,
+        6,
+        0
+      ],
+      [
+        0,
+        1,
+        12
+      ]
+    ],
+    "percent_score_confusion_matrix": [
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        2
+      ],
+      [
+        0,
+        0,
+        0,
+        22
+      ]
+    ],
+    "expression_confusion_matrix": [
+      [
+        2,
+        3
+      ],
+      [
+        1,
+        18
+      ]
+    ]
+  },
+  "caveat": "Thresholds are calibrated from 24 image-level labels rather than cell-level pathologist annotations, so they should be treated as preliminary and re-calibrated with more labeled cases."
+}

@@ -1,0 +1,7 @@
+﻿file,patient_id,location,weak_1plus_pct,medium_2plus_pct,strong_3plus_pct,positive_area_pct,positive_nuclei_pct,pred_intensity_score,gt_intensity_score,pred_percent_score,gt_percent_score,pred_final_score,gt_final_score,pred_expression,gt_expression
+DNMT3A_1874_block1.jpg,1874_1,cytoplasmic/membranous,91.46,6.78,1.76,28.46,99.36,1,2,3,3,3,6,low,high
+DNMT3A_1882_block1.jpg,1882,cytoplasmic/membranous,81.73,8.77,9.5,17.59,99.61,2,1,3,3,6,3,high,low
+DNMT3A_1910_block2.jpg,1910_2,"cytoplasmic/membranous,nuclear",81.72,10.32,7.97,18.69,95.36,2,3,3,3,6,6,high,high
+DNMT3A_2083_block1.jpg,2083,cytoplasmic/membranous,80.89,11.81,7.3,18.69,100.0,2,1,3,3,6,3,high,low
+DNMT3A_2252_block2.jpg,2252,nuclear,57.54,17.66,24.8,10.26,85.67,3,3,3,2,9,6,high,high
+DNMT3A_3257_block1.jpg,3257_1,"cytoplasmic/membranous,nuclear",94.02,4.22,1.77,17.21,99.08,2,2,3,2,6,4,high,low
