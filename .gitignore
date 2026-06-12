@@ -137,6 +137,17 @@ dmypy.json
 /model-server/
 /results/*
 
+# Large generated artifacts and local data copies
+DeepLIIF_Latest_Model.zip
+analysis_outputs/deepliif_prediction_images/
+analysis_outputs/dnmt3a_cancer_mask_prediction_images/
+analysis_outputs/dnmt3a_cancer_mask_prediction_images.zip
+260509-HPA_DNMT3a_Patches影像檔案/
+260509-HPA_DNMT3a_Patches影像檔案.zip
+DNMT3A 24例 染色圖及評分/
+DNMT3A 24例 染色圖及評分.zip
+DeepLIIF-1/
+
 **/.ipynb_checkpoints/*
 **/.virtual_documents/*
 assets/.METADATA/job_run.*

@@ -982,6 +982,98 @@ def prepare_training_data(input_dir, output_dir, validation_ratio):
 
 
 @cli.command()
+@click.option('--input-dir', type=str, required=True, help='Path to input images')
+@click.option('--output-dir', type=str, required=True, help='Path to output dataset')
+@click.option('--validation-ratio', default=0.2,
+              help='The ratio of validation samples to the total number of images')
+@click.option('--image-label', default='IHC', show_default=True,
+              help='Label used in the raw image filename, e.g. Case01_IHC.png')
+@click.option('--mask-label', default='CancerSeg', show_default=True,
+              help='Label used in the cancer mask filename, e.g. Case01_CancerSeg.png')
+@click.option('--tile-size', default=512, show_default=True,
+              help='Output patch size for both the raw image and the mask')
+def prepare_cancer_seg_data(input_dir, output_dir, validation_ratio, image_label, mask_label, tile_size):
+    """Prepare a stage-1 dataset for cancer-cell segmentation.
+
+    This creates stitched training images in the form of (raw image, cancer mask),
+    which can be used with the configurable DeepLIIF model:
+
+        deepliif train --model DeepLIIF --modalities-no 0 --seg-gen true ...
+
+    The command expects each source image to have a corresponding cancer mask with
+    the same base filename except for the label portion.
+    """
+    train_dir = os.path.join(output_dir, 'train')
+    val_dir = os.path.join(output_dir, 'val')
+    os.makedirs(train_dir, exist_ok=True)
+    os.makedirs(val_dir, exist_ok=True)
+
+    images = sorted(os.listdir(input_dir))
+    for img in images:
+        if image_label not in img:
+            continue
+
+        mask_name = img.replace(image_label, mask_label)
+        image_path = os.path.join(input_dir, img)
+        mask_path = os.path.join(input_dir, mask_name)
+
+        if not os.path.exists(mask_path):
+            raise FileNotFoundError(f'Cancer mask not found for {img}: expected {mask_name}')
+
+        raw_image = cv2.resize(cv2.imread(image_path), (tile_size, tile_size))
+        mask_image = cv2.resize(cv2.imread(mask_path), (tile_size, tile_size), interpolation=cv2.INTER_NEAREST)
+
+        save_dir = val_dir if random.random() < validation_ratio else train_dir
+        cv2.imwrite(os.path.join(save_dir, img), np.concatenate([raw_image, mask_image], 1))
+
+
+@cli.command()
+@click.option('--image-dir', type=str, required=True, help='Directory containing raw images')
+@click.option('--mask-dir', type=str, required=True, help='Directory containing cancer masks')
+@click.option('--output-dir', type=str, required=True, help='Directory to save masked images')
+@click.option('--image-label', default='IHC', show_default=True,
+              help='Label used in the raw image filename')
+@click.option('--mask-label', default='CancerSeg', show_default=True,
+              help='Label used in the cancer mask filename')
+@click.option('--threshold', default=127, show_default=True,
+              help='Binary threshold applied to the mask before gating the image')
+def apply_cancer_mask(image_dir, mask_dir, output_dir, image_label, mask_label, threshold):
+    """Keep only cancer-cell regions in each image using a predicted or annotated mask.
+
+    This is the recommended bridge between a stage-1 U-Net-like cancer segmenter
+    and a stage-2 chromosome analysis model.
+    """
+    os.makedirs(output_dir, exist_ok=True)
+
+    images = sorted(os.listdir(image_dir))
+    for img in images:
+        if image_label not in img:
+            continue
+
+        mask_name = img.replace(image_label, mask_label)
+        image_path = os.path.join(image_dir, img)
+        mask_path = os.path.join(mask_dir, mask_name)
+
+        if not os.path.exists(mask_path):
+            raise FileNotFoundError(f'Cancer mask not found for {img}: expected {mask_name}')
+
+        image = cv2.imread(image_path, cv2.IMREAD_COLOR)
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+
+        if image is None:
+            raise ValueError(f'Unable to read image: {image_path}')
+        if mask is None:
+            raise ValueError(f'Unable to read mask: {mask_path}')
+
+        if mask.shape[:2] != image.shape[:2]:
+            mask = cv2.resize(mask, (image.shape[1], image.shape[0]), interpolation=cv2.INTER_NEAREST)
+
+        binary_mask = (mask >= threshold).astype(np.uint8)
+        masked_image = image * binary_mask[:, :, None]
+        cv2.imwrite(os.path.join(output_dir, img), masked_image)
+
+
+@cli.command()
 @click.option('--input_dir', required=True, help='path to input images')
 @click.option('--output_dir', type=str, help='path to output images')
 def prepare_testing_data(input_dir, dataset_dir):

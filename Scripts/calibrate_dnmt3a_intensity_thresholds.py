@@ -80,13 +80,29 @@ def white_balance(img: np.ndarray) -> np.ndarray:
     return np.clip(balanced, 0, 255).astype(np.uint8)
 
 
-def analyze_image(image_path: str, region_low_percentile: float = 70.0) -> tuple[np.ndarray, np.ndarray, int, int]:
+def load_roi_mask(mask_path: str, image_shape: tuple[int, int], mask_threshold: int = 127) -> np.ndarray:
+    mask = np.asarray(Image.open(mask_path).convert("L"))
+    if mask.shape != image_shape:
+        mask_img = Image.fromarray(mask)
+        mask = np.asarray(mask_img.resize((image_shape[1], image_shape[0]), Image.NEAREST))
+    return mask >= mask_threshold
+
+
+def analyze_image(
+    image_path: str,
+    region_low_percentile: float = 70.0,
+    roi_mask_path: str | None = None,
+    mask_threshold: int = 127,
+) -> tuple[np.ndarray, np.ndarray, int, int]:
     img = np.asarray(Image.open(image_path).convert("RGB"))
     img = white_balance(img)
     img_f = img.astype(np.float32) / 255.0
 
     gray = img_f.mean(axis=2)
     tissue_mask = gray < min(0.95, np.quantile(gray, 0.95))
+    if roi_mask_path:
+        roi_mask = load_roi_mask(roi_mask_path, tissue_mask.shape, mask_threshold=mask_threshold)
+        tissue_mask = tissue_mask & roi_mask
 
     dab = np.clip(rgb2hed(img_f)[:, :, 2], 0, None)
     dab_tissue = dab[tissue_mask]
