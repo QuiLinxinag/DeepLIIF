@@ -3,7 +3,7 @@
 <br />
 <p align="center">
     <img src="./images/DeepLIIF_logo.png" width="50%">
-    <h3 align="center"><strong>QuiLinxinag DeepLIIF-DNMT3A</strong></h3>
+    <h3 align="center"><strong>DeepLIIF</strong></h3>
     <p align="center">
     Customized pathology-analysis workflow for DNMT3A intensity scoring, cancer-mask-restricted quantification, and DeepLIIF-based prediction visualization.
     </p>
