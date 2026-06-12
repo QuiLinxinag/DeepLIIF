@@ -2,7 +2,10 @@
 <br />
 <p align="center">
     <img src="./images/DeepLIIF_logo.png" width="50%">
-    <h3 align="center"><strong>Deep-Learning Inferred Multiplex Immunofluorescence for IHC Image Quantification</strong></h3>
+    <h3 align="center"><strong>QuiLinxinag DeepLIIF-DNMT3A Documentation</strong></h3>
+    <p align="center">
+    Customized documentation for the DNMT3A analysis workflow built on top of the original DeepLIIF framework.
+    </p>
     <p align="center">
     <a href="https://doi.org/10.1101/2021.05.01.442219">Read Link</a>
     |
@@ -13,6 +16,9 @@
     <a href="https://github.com/nadeemlab/DeepLIIF/issues">Report Bug</a>
   </p>
 </p>
+
+> Upstream source: **DeepLIIF** by Nadeem Lab  
+> Upstream repository: `https://github.com/nadeemlab/DeepLIIF`
 
 *Reporting biomarkers assessed by routine immunohistochemical (IHC) staining of tissue is broadly used in diagnostic 
 pathology laboratories for patient care. To date, clinical reporting is predominantly qualitative or semi-quantitative. 

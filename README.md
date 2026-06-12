@@ -3,7 +3,10 @@
 <br />
 <p align="center">
     <img src="./images/DeepLIIF_logo.png" width="50%">
-    <h3 align="center"><strong>Deep-Learning Inferred Multiplex Immunofluorescence for Immunohistochemical Image Quantification</strong></h3>
+    <h3 align="center"><strong>QuiLinxinag DeepLIIF-DNMT3A</strong></h3>
+    <p align="center">
+    Customized pathology-analysis workflow for DNMT3A intensity scoring, cancer-mask-restricted quantification, and DeepLIIF-based prediction visualization.
+    </p>
     <p align="center">
     <a href="https://rdcu.be/cKSBz">Nature MI'22</a>
     |
@@ -23,6 +26,20 @@
   </p>
 </p>
 
+> This repository is a customized derivative maintained by **QuiLinxinag**.
+> It extends the original **DeepLIIF** project with DNMT3A-specific analysis, cancer-mask-restricted scoring, prediction overlays, and CSV reporting workflows.
+
+## Upstream Reference
+
+- Original project: **DeepLIIF**
+- Upstream repository: `https://github.com/nadeemlab/DeepLIIF`
+- Primary references:
+  - Nature Machine Intelligence 2022
+  - CVPR 2022
+  - MICCAI 2023 / 2024
+
+The original DeepLIIF framework remains the core source of the multitask modality-translation and segmentation pipeline used in this repository. The DNMT3A quantification, cancer-mask-based ROI analysis, and reporting extensions were added in this customized version.
+
 *Reporting biomarkers assessed by routine immunohistochemical (IHC) staining of tissue is broadly used in diagnostic 
 pathology laboratories for patient care. To date, clinical reporting is predominantly qualitative or semi-quantitative. 
 By creating a multitask deep learning framework referred to as DeepLIIF, we present a single-step solution to stain 
@@ -38,7 +55,7 @@ MYC, MUM1, CD10, and TP53. We thoroughly evaluate our method on publicly availab
 pathologists' semi-quantitative scoring. Trained on IHC, DeepLIIF generalizes well to H&E images for out-of-the-box nuclear 
 segmentation.*
 
-**DeepLIIF** is deployed as a free publicly available cloud-native platform (https://deepliif.org) with Bioformats (more than 150 input formats supported) and MLOps pipeline. We also release **DeepLIIF** implementations for single/multi-GPU training, Torchserve/Dask+Torchscript deployment, and auto-scaling via Pulumi (1000s of concurrent connections supported); details can be found in our [documentation](https://nadeemlab.github.io/DeepLIIF/). **DeepLIIF** can be run locally (GPU required) by [pip installing the package](https://github.com/nadeemlab/DeepLIIF/edit/main/README.md#installing-deepliif) and using the deepliif CLI command. **DeepLIIF** can be used remotely (no GPU required) through the https://deepliif.org website, calling the [cloud API via Python](https://github.com/nadeemlab/DeepLIIF/edit/main/README.md#cloud-deployment), or via the [ImageJ/Fiji plugin](https://github.com/nadeemlab/DeepLIIF/edit/main/README.md#imagej-plugin); details for the free cloud-native platform can be found in our [CVPR'22 paper](https://arxiv.org/pdf/2204.04494.pdf).
+This customized repository is built on top of **DeepLIIF**. The original project is deployed as a free publicly available cloud-native platform (https://deepliif.org) with Bioformats (more than 150 input formats supported) and MLOps pipeline. We also retain the original **DeepLIIF** implementations for single/multi-GPU training, Torchserve/Dask+Torchscript deployment, and auto-scaling via Pulumi (1000s of concurrent connections supported); details can be found in the upstream [documentation](https://nadeemlab.github.io/DeepLIIF/). The added value in this repository is the DNMT3A-focused quantification workflow and the cancer-mask-scoped reporting pipeline.
 
 © This code is made available for non-commercial academic purposes.
 
