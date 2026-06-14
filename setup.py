@@ -2,7 +2,7 @@ from setuptools import setup
 import pathlib
 
 HERE = pathlib.Path(__file__).parent
-README = (HERE / "README.md").read_text()
+README = (HERE / "README.md").read_text(encoding="utf-8")
 
 setup(
     name='deepliif',

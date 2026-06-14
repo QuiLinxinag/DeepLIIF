@@ -109,6 +109,13 @@ def source_image_name(filename: str) -> str:
     return os.path.splitext(filename)[0]
 
 
+def weighted_mode(scores: pd.Series, weights: pd.Series) -> int:
+    score_weights: dict[int, float] = {}
+    for score, weight in zip(scores, weights):
+        score_weights[int(score)] = score_weights.get(int(score), 0.0) + float(weight)
+    return max(sorted(score_weights), key=lambda score: score_weights[score])
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Apply calibrated DNMT3A intensity thresholds to a folder of images.")
     parser.add_argument("--input-dir", required=True, help="Directory containing images, scanned recursively.")
@@ -214,10 +221,13 @@ def main() -> None:
     source_df["strong_3plus_pct"] = 100.0 * source_df["strong_count"] / total_regions
     source_df["positive_area_pct"] = 100.0 * source_df["positive_pixels"] / source_df["tissue_pixels"].clip(lower=1)
     source_df["positive_nuclei_pct"] = 100.0 * source_df["positive_nuclei_count"] / source_df["nuclei_count"].clip(lower=1)
-
-    source_df["pred_intensity_score"] = source_df[["weak_count", "medium_count", "strong_count"]].idxmax(axis=1).map(
-        {"weak_count": 1, "medium_count": 2, "strong_count": 3}
+    intensity_df = (
+        patch_df.groupby(["relative_dir", "source_image"])[["pred_intensity_score", "region_count"]]
+        .apply(lambda group: weighted_mode(group["pred_intensity_score"], group["region_count"]))
+        .reset_index(name="pred_intensity_score")
     )
+    source_df = source_df.merge(intensity_df, on=["relative_dir", "source_image"], how="left")
+    source_df["pred_intensity_score"] = source_df["pred_intensity_score"].astype(int)
     source_df["pred_percent_score"] = source_df["positive_nuclei_pct"].apply(percent_to_score)
     source_df["pred_final_score"] = source_df["pred_intensity_score"] * source_df["pred_percent_score"]
     source_df["pred_expression"] = source_df["pred_final_score"].apply(lambda x: "high" if x > 4 else "low")
