@@ -1,639 +1,129 @@
+# QuiLinxinag DeepLIIF-DNMT3A
 
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-    <img src="./images/DeepLIIF_logo.png" width="50%">
-    <h3 align="center"><strong>DeepLIIF</strong></h3>
-    <p align="center">
-    Customized pathology-analysis workflow for DNMT3A intensity scoring, cancer-mask-restricted quantification, and DeepLIIF-based prediction visualization.
-    </p>
-    <p align="center">
-    <a href="https://rdcu.be/cKSBz">Nature MI'22</a>
-    |
-    <a href="https://openaccess.thecvf.com/content/CVPR2022/html/Ghahremani_DeepLIIF_An_Online_Platform_for_Quantification_of_Clinical_Pathology_Slides_CVPR_2022_paper.html">CVPR'22</a>
-    |
-    <a href="https://arxiv.org/abs/2305.16465">MICCAI'23</a>
-    |
-    <a href="https://onlinelibrary.wiley.com/share/author/4AEBAGEHSZE9GDP3H8MN?target=10.1111/his.15048">Histopathology'23</a>
-    |
-    <a href="https://arxiv.org/abs/2405.08169">MICCAI'24</a>
-    |
-    <a href="https://deepliif.org/">Cloud Deployment</a>
-    |
-    <a href="https://nadeemlab.github.io/DeepLIIF/">Documentation</a>
-    |
-    <a href="#support">Support</a>
-  </p>
+  <img src="./images/DeepLIIF_logo.png" width="50%">
 </p>
 
-> This repository is a customized derivative maintained by **QuiLinxinag**.
-> It extends the original **DeepLIIF** project with DNMT3A-specific analysis, cancer-mask-restricted scoring, prediction overlays, and CSV reporting workflows.
+以 `DeepLIIF` 為基礎延伸的病理影像分析專案，主軸是先從 IHC 影像取得癌細胞相關 segmentation，再針對 `DNMT3A` 染色做強度分級、陽性比例統計、預測圖輸出與 CSV 報表整理。
 
-## Upstream Reference
+## 專案重點
 
-- Original project: **DeepLIIF**
+- 使用 `DeepLIIF` 產出的 `SegRefined` 作為癌細胞 ROI
+- 將 `DNMT3A` 定量限制在癌細胞區域內
+- 產生強度地圖、疊圖與摘要 JSON
+- 匯出全圖版與癌細胞 mask 版 CSV
+- 整理比較結果，方便檢視表現差異
+
+## 主要流程
+
+1. 使用 `DeepLIIF` 對 IHC 影像做推論，輸出 segmentation 與輔助模態影像。
+2. 使用 `Scripts/apply_dnmt3a_intensity_thresholds.py` 做 `DNMT3A` 強度與陽性比例分析。
+3. 使用 `Scripts/generate_dnmt3a_intensity_prediction_images.py` 產生可視化預測圖。
+4. 使用 `Scripts/organize_dnmt3a_csvs.py` 整理全圖版與癌細胞 mask 版結果。
+
+## 常見輸出
+
+### DeepLIIF 推論輸出
+
+- `analysis_outputs/deepliif_prediction_images/`
+- `*_Seg.png`
+- `*_SegOverlaid.png`
+- `*_SegRefined.png`
+- `*_mod1-Hema.png`
+- `*_mod2-DAPI.png`
+- `*_mod3-Lap2.png`
+- `*_mod4-Marker.png`
+
+### DNMT3A 定量輸出
+
+- `analysis_outputs/dnmt3a_fullslide_outputs/source_image_summary.csv`
+- `analysis_outputs/dnmt3a_fullslide_outputs/patch_results.csv`
+- `analysis_outputs/dnmt3a_cancer_mask_outputs/source_image_summary.csv`
+- `analysis_outputs/dnmt3a_cancer_mask_outputs/patch_results.csv`
+
+### 預測圖輸出
+
+- `analysis_outputs/dnmt3a_cancer_mask_prediction_images/`
+- `*_IntensityMap.png`
+- `*_IntensityOverlay.png`
+- `*_IntensitySummary.json`
+
+## 環境安裝
+
+Windows 建議使用 `Conda + pip`：
+
+```powershell
+conda create -n deepliif-win python=3.8 -y
+conda activate deepliif-win
+conda install -c conda-forge openjdk maven -y
+python -m pip install --upgrade pip
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install opencv-python==4.8.1.78 scikit-image==0.18.3 dominate==2.6.0 numba==0.57.1 Click==8.0.3 requests==2.32.2 dask==2021.11.2 visdom python-bioformats imagecodecs==2023.3.16 zarr==2.16.1 pandas openpyxl scikit-learn
+pip install -e . --no-deps
+```
+
+安裝後可驗證：
+
+```powershell
+python cli.py --help
+deepliif --help
+```
+
+## 常用指令
+
+### DeepLIIF segmentation
+
+```bash
+deepliif test --input-dir /path/to/input/images --output-dir /path/to/output/images --model-dir /path/to/model --tile-size 512
+```
+
+### DNMT3A 強度分析
+
+```bash
+python Scripts/apply_dnmt3a_intensity_thresholds.py --input-dir /path/to/images --output-dir /path/to/output
+```
+
+### 癌細胞 mask 限制分析
+
+```bash
+python Scripts/apply_dnmt3a_intensity_thresholds.py --input-dir /path/to/images --mask-dir /path/to/segrefined_masks --output-dir /path/to/output
+```
+
+### 產生強度預測圖
+
+```bash
+python Scripts/generate_dnmt3a_intensity_prediction_images.py --input-dir /path/to/images --mask-dir /path/to/segrefined_masks --output-dir /path/to/output
+```
+
+### 整理比較 CSV
+
+```bash
+python Scripts/organize_dnmt3a_csvs.py --fullslide-csv /path/to/fullslide/source_image_summary.csv --cancer-mask-csv /path/to/cancer_mask/source_image_summary.csv --output-dir /path/to/output
+```
+
+## 相關文件
+
+- `docs/environment_setup_zh.md`
+- `docs/dnmt3a_manual_run_zh.md`
+- `analysis_outputs/dnmt3a_prediction_report_zh.md`
+
+## 上游來源
+
+本專案建立在原始 `DeepLIIF` 之上：
+
+- Upstream project: `DeepLIIF`
 - Upstream repository: `https://github.com/nadeemlab/DeepLIIF`
-- Primary references:
-  - Nature Machine Intelligence 2022
-  - CVPR 2022
-  - MICCAI 2023 / 2024
+- Official website: `https://deepliif.org/`
 
-The original DeepLIIF framework remains the core source of the multitask modality-translation and segmentation pipeline used in this repository. The DNMT3A quantification, cancer-mask-based ROI analysis, and reporting extensions were added in this customized version.
+本 repo 的主要新增價值在於：
 
-*Reporting biomarkers assessed by routine immunohistochemical (IHC) staining of tissue is broadly used in diagnostic 
-pathology laboratories for patient care. To date, clinical reporting is predominantly qualitative or semi-quantitative. 
-By creating a multitask deep learning framework referred to as DeepLIIF, we present a single-step solution to stain 
-deconvolution/separation, cell segmentation, and quantitative single-cell IHC scoring. Leveraging a unique de novo 
-dataset of co-registered IHC and multiplex immunofluorescence (mpIF) staining of the same slides, we segment and 
-translate low-cost and prevalent IHC slides to more expensive-yet-informative mpIF images, while simultaneously 
-providing the essential ground truth for the superimposed brightfield IHC channels. Moreover, a new nuclear-envelop 
-stain, LAP2beta, with high (>95%) cell coverage is introduced to improve cell delineation/segmentation and protein 
-expression quantification on IHC slides. By simultaneously translating input IHC images to clean/separated mpIF channels 
-and performing cell segmentation/classification, we show that our model trained on clean IHC Ki67 data can generalize to 
-more noisy and artifact-ridden images as well as other nuclear and non-nuclear markers such as CD3, CD8, BCL2, BCL6, 
-MYC, MUM1, CD10, and TP53. We thoroughly evaluate our method on publicly available benchmark datasets as well as against 
-pathologists' semi-quantitative scoring. Trained on IHC, DeepLIIF generalizes well to H&E images for out-of-the-box nuclear 
-segmentation.*
+- 癌細胞 ROI 限制分析
+- `DNMT3A` 規則式量化流程
+- 預測圖與摘要輸出
+- CSV 比較整理流程
 
-This customized repository is built on top of **DeepLIIF**. The original project is deployed as a free publicly available cloud-native platform (https://deepliif.org) with Bioformats (more than 150 input formats supported) and MLOps pipeline. We also retain the original **DeepLIIF** implementations for single/multi-GPU training, Torchserve/Dask+Torchscript deployment, and auto-scaling via Pulumi (1000s of concurrent connections supported); details can be found in the upstream [documentation](https://nadeemlab.github.io/DeepLIIF/). The added value in this repository is the DNMT3A-focused quantification workflow and the cancer-mask-scoped reporting pipeline.
+## 授權與使用
 
-© This code is made available for non-commercial academic purposes.
-
-![Version](https://img.shields.io/static/v1?label=latest&message=v1.2.6&color=darkgreen)
-[![Total Downloads](https://static.pepy.tech/personalized-badge/deepliif?period=total&units=international_system&left_color=grey&right_color=blue&left_text=total%20downloads)](https://pepy.tech/project/deepliif?&left_text=totalusers)
-
-![overview_image](./images/overview.png)*Overview of DeepLIIF pipeline and sample input IHCs (different 
-brown/DAB markers -- BCL2, BCL6, CD10, CD3/CD8, Ki67) with corresponding DeepLIIF-generated hematoxylin/mpIF modalities 
-and classified (positive (red) and negative (blue) cell) segmentation masks. (a) Overview of DeepLIIF. Given an IHC 
-input, our multitask deep learning framework simultaneously infers corresponding Hematoxylin channel, mpIF DAPI, mpIF 
-protein expression (Ki67, CD3, CD8, etc.), and the positive/negative protein cell segmentation, baking explainability 
-and interpretability into the model itself rather than relying on coarse activation/attention maps. In the segmentation 
-mask, the red cells denote cells with positive protein expression (brown/DAB cells in the input IHC), whereas blue cells 
-represent negative cells (blue cells in the input IHC). (b) Example DeepLIIF-generated hematoxylin/mpIF modalities and 
-segmentation masks for different IHC markers. DeepLIIF, trained on clean IHC Ki67 nuclear marker images, can generalize 
-to noisier as well as other IHC nuclear/cytoplasmic marker images.*
-
-## Prerequisites
-1. Python 3.8
-2. Docker
-
-## Installing `deepliif`
-
-DeepLIIF can be `pip` installed:
-```shell
-$ conda create --name deepliif_env python=3.8
-$ conda activate deepliif_env
-(deepliif_env) $ conda install -c conda-forge openjdk
-(deepliif_env) $ pip install deepliif
-```
-
-The package is composed of two parts:
-1. A library that implements the core functions used to train and test DeepLIIF models. 
-2. A CLI to run common batch operations including training, batch testing and Torchscipt models serialization.
-
-You can list all available commands:
-
-```
-$ deepliif --help
-Usage: deepliif [OPTIONS] COMMAND [ARGS]...
-
-  Commonly used DeepLIIF batch operations
-
-Options:
-  --help  Show this message and exit.
-
-Commands:
-  prepare-testing-data   Preparing data for testing
-  prepare-training-data  Preparing data for training
-  serialize              Serialize DeepLIIF models using Torchscript
-  test                   Test trained models
-  test-wsi
-  train                  General-purpose training script for multi-task...
-  trainlaunch            A wrapper method that executes deepliif/train.py...
-  visualize
-```
-
-**Note:** You might need to install a version of PyTorch that is compatible with your CUDA version. 
-Otherwise, only the CPU will be used. 
-Visit the [PyTorch website](https://pytorch.org/) for details. 
-You can confirm if your installation will run on the GPU by checking if the following returns `True`:
-
-```
-import torch
-torch.cuda.is_available()
-```
-## Dataset for training, validation, and testing
-An example data directory looks as the following:
-```
-<Data folder> 
-    ├── train
-    ├── val
-    ├── val_cli
-    └── val_cli_gt
-```
-
-If you use different subfolder names, you will need to add `--phase {foldername}` in the training or testing commands for the functions to navigate to the correct subfolder.
-
-Content in each subfolder:
-- train: training images used by command `python cli.py train`, see section Training Dataset below
-- val: validation images used by command `python cli.py train --with-val`, see section Validation Dataset below
-- val_cli: input modalities of the validation images used by command `python cli.py test`, see section Testing below
-- val_cli_gt: ground truth of the output modalities from the validation images, used for evaluation purposes
-
-### Training Dataset
-For training in general, each image in the training set is in the form of a set of horizontally stitched patches, in the order of **base input modalities, translation modalities, and segmentation modalities** (whenever applicable). 
-
-Specifically for the DeepLIIF original model, all image sets must be 512x512 and combined together in 3072x512 images (six images of size 512x512 stitched together horizontally).
-
-We have provided a simple function in the CLI for preparing DeepLIIF data for training.
-
-* **To use this method to prepare data for training**, you need to have the image dataset for each image (including IHC, Hematoxylin Channel, mpIF DAPI, mpIF Lap2, mpIF marker, and segmentation mask) in the input directory.
-Each of the six images for a single image set must have the same naming format, with only the name of the label for the type of image differing between them. To reproduce the original DeepLIIF model, the label names must be, respectively: IHC, Hematoxylin, DAPI, Lap2, Marker, Seg.
-The command takes the address of the directory containing image set data and the address of the output dataset directory.
-It first creates the train and validation directories inside the given output dataset directory.
-It then reads all of the images in the input directory and saves the combined image in the train or validation directory, based on the given `validation_ratio`.
-```
-deepliif prepare-training-data --input-dir /path/to/input/images
-                               --output-dir /path/to/output/images
-                               --validation-ratio 0.2
-```
-
-### Validation Dataset
-The validation dataset consists of images of the same format as the training dataset and is totally optional (i.e., DeepLIIF model training command does not require a validation dataset to run). This currently is only implemented for **DeepLIIF or DeepLIIFKD models with segmentation task** (in which case the very last tile in the training / validation image is the segmentation tile).
-
-To use the validation dataset during training, it is necessary to first acquire the key quantitative statistics for the model to compare against as the training progresses. In tasks that target generating a single number or an array of numbers, validation metrics can be done by simply calculating the differences between the ground truth numbers and predicted numbers. In our image generation tasks, however, the key metrics we want to monitor are segmentation results: number of positive cells, number of negative cells, etc. These are much more informative and better reflect the quality of the model output than differences between pixel values. The ground truth quantitative numbers of segmentation results can be obtained using the `postprocess` function in `deepliif.models`.
-
-We provide a wrapper function `get_cell_count_metrics` that generates a JSON file for model validation:
-```
-from deepliif.stat import get_cell_count_metrics
-dir_img = '...' # e.g., directory to the validation images
-get_cell_count_metrics(dir_img, dir_save=dir_img, model='DeepLIIF', tile_size=512)
-```
-
-
-## Training
-To train a model:
-```
-deepliif train --dataroot /path/to/input/images 
-               --name Model_Name 
-```
-or
-```
-python train.py --dataroot /path/to/input/images 
-                --name Model_Name 
-```
-
-* To view training losses and results, open the URL http://localhost:8097. For cloud servers replace localhost with your IP.
-* Epoch-wise intermediate training results are in `DeepLIIF/checkpoints/Model_Name/web/index.html`.
-* Trained models will be by default be saved in `DeepLIIF/checkpoints/Model_Name`.
-* Training datasets for the original DeepLIIF model can be downloaded from [Zenodo](https://zenodo.org/record/4751737#.YKRTS0NKhH4).
-
-### Multi-GPU Training
-You can find more information on multi-gpu training with DeepLIIF code [here](https://github.com/nadeemlab/DeepLIIF/blob/main/Multi-GPU%20Training.md).
-
-In short, 
-- Command `deepliif train` triggers **Data Parallel** (DP). DP is single-process, so **all the GPUs you want to use must be on the same machine** in order for them to be included in the same process. In other words, you cannot distribute the training across multiple GPU machines, unless you write your own code to handle inter-node / inter-machine communication.
-- Command `deepliif trainlaunch` triggers **Distributed Data Parallel** (DDP). DDP usually spawns multiple processes and consequently **can be used across machines**. 
-
-Example commands with 2 GPUs:
-```
-deepliif train --dataroot <data_dir> --batch-size 6 --gpu-ids 0 --gpu-ids 1
-deepliif trainlaunch --dataroot <data_dir> --batch-size 3 --gpu-ids 0 --gpu-ids 1 --use-torchrun "--nproc_per_node 2"
-```
-
-### Model Types
-In addition to the original DeepLIIF model, the package now supports more model types. Details can be found [here](https://github.com/nadeemlab/DeepLIIF/blob/main/Model%20Types.md).
-
-## Serialize Model
-The installed `deepliif` package can optionally use serialized model objects to perform inference on the input images. In order to do this, before running the `test` command, the model files need to be serialized using Torchscript:
-```
-deepliif serialize --model-dir /path/to/input/model/files
-                   --output-dir /path/to/output/model/files
-                   --device gpu
-```
-* By default, for original DeepLIIF, the model files are expected to be located in `DeepLIIF/model-server/DeepLIIF_Latest_Model`.
-* If not specified, the serialized files will be saved to the same directory as the input model files.
-
-## Testing / Inference
-To test the model:
-```
-deepliif test --input-dir /path/to/input/images
-              --output-dir /path/to/output/images
-              --model-dir /path/to/the/serialized/model
-              --tile-size 512
-```
-or
-```
-python test.py --dataroot /path/to/input/images
-               --results_dir /path/to/output/images
-               --checkpoints_dir /path/to/model/files
-               --name Model_Name
-```
-* The latest version of the pretrained models can be downloaded [here](https://zenodo.org/record/4751737#.YKRTS0NKhH4).
-* The format of input images to `test.py` is the same as training/validation data, while that to `deepliif test` command is only the input modalities (e.g., only IHC for original DeepLIIF).
-* Use `deepliif test ... --eager-mode` for the raw model files, or serialize the model files as described above to run the serialized ones.
-* For original DeepLIIF, The serialized model files are expected to be located in `DeepLIIF/model-server/DeepLIIF_Latest_Model`.
-* The test results will be saved to the specified output directory, which defaults to the input directory.
-* The tile size must be specified and is used to split the image into tiles for processing.  The tile size is based on the resolution (scan magnification) of the input image, and the recommended values are a tile size of 512 for 40x images, 256 for 20x, and 128 for 10x.  Note that the smaller the tile size, the longer inference will take.
-* Testing datasets can be downloaded from [Zenodo](https://zenodo.org/record/4751737#.YKRTS0NKhH4).
-
-**Test Command Options:**  
-In addition to the required parameters given above, the following optional parameters are available for `deepliif test`:
-* `--eager-mode` Run the original model files (instead of serialized model files).
-* `--seg-intermediate` Save the intermediate segmentation maps created for each modality.
-* `--seg-only` Save only the segmentation files, and do not infer images that are not needed.
-* `--mod-only` Save only the translated modality image; overwrites --seg-only and --seg-intermediate.
-* `--color-dapi` Color the inferred DAPI image.
-* `--color-marker` Color the inferred marker image.
-* `--BtoA` For models trained with unaligned dataset, this flag instructs the code to load generatorB instead of generatorA.
-
-**Whole Slide Image (WSI) Inference:**  
-For translation and segmentation of whole slide images, 
-you can simply use the `test-wsi` command 
-giving path to the directory containing your WSI as the input-dir 
-and specifying the filename of the WSI.
-DeepLIIF automatically reads the WSI region by region, 
-and translate and segment each region separately and stitches the regions 
-to create the translation and segmentation for whole slide image, 
-then saves all masks in the format of ome.tiff in the given output-dir. 
-Based on the available resources, the region-size can be changed.
-```
-deepliif test-wsi --input-dir /path/to/input/image 
-                  --filename wsiFile.svs
-                  --output-dir /path/to/output/images 
-                  --model-dir /path/to/the/serialized/model
-                  --tile-size 512
-```
-
-**WSI Inference Options:**  
-In addition to the required parameters given above, the following optional parameters are available for `deepliif test-wsi`:
-* `--region-size` Set the size of each region to read from the WSI (default is 20000).
-* `--seg-intermediate` Save the intermediate segmentation maps created for each modality.
-* `--seg-only` Save only the segmentation files, and do not infer images that are not needed.
-* `--color-dapi` Color the inferred DAPI image.
-* `--color-marker` Color the inferred marker image.
-
-**Reducing Run Time**  
-If you need only the final segmentation and not the inferred multiplex images, 
-it is recommended to run `deepliif test` or `deepliif test-wsi` with the `--seg-only` 
-option.  This will generate only the necessary images, thus reducing the overall run time.
-
-**Torchserve**  
-If you prefer, it is possible to run the models using Torchserve.
-Please see [the documentation](https://nadeemlab.github.io/DeepLIIF/deployment/#deploying-deepliif-with-torchserve)
-on how to deploy the model with Torchserve and for an example of how to run the inference.
-
-## Docker
-We provide a Dockerfile that can be used to run the DeepLIIF models inside a container.
-First, you need to install [Docker Engine](https://docs.docker.com/engine/install/ubuntu/).
-After installing Docker, you need to follow these steps:
-* Download the pretrained model [here](https://zenodo.org/record/4751737#.YKRTS0NKhH4) and place them in DeepLIIF/model-server/DeepLIIF_Latest_Model.
-* To create a docker image from the docker file:
-```
-docker build -t cuda/deepliif .
-```
-The image is then used as a base. You can copy and use it to run an application. The application needs an isolated 
-environment in which to run, referred to as a container.
-* To create and run a container:
-```
- docker run -it -v `pwd`:`pwd` -w `pwd` cuda/deepliif deepliif test --input-dir Sample_Large_Tissues --tile-size 512
-```
-When you run a container from the image, the `deepliif` CLI will be available.
-You can easily run any CLI command in the activated environment and copy the results from the docker container to the host.
-
-## ImageJ Plugin
-If you don't have access to GPU or appropriate hardware and just want to use ImageJ to run inference, we have also created an [ImageJ plugin](https://github.com/nadeemlab/DeepLIIF/tree/main/ImageJ_Plugin) for your convenience.
-
-![DeepLIIF ImageJ Demo](images/deepliif-imagej-demo.gif)
-
-The plugin also supports submitting multiple ROIs at once:
-
-![DeepLIIF ImageJ ROI Demo](images/deepliif-imagej-roi-demo.gif)
-
-## Cloud Deployment
-If you don't have access to GPU or appropriate hardware and don't want to install ImageJ, we have also created a [cloud-native DeepLIIF deployment](https://deepliif.org) with a user-friendly interface to upload images, visualize, interact, and download the final results.
-
-![DeepLIIF Website Demo](images/deepliif-website-demo-04.gif)
-
-Our deployment at [deepliif.org](https://deepliif.org) also provides virtual slide digitization to generate a single stitched image from a 10x video acquired with a microscope and camera.  The video should be captured with the following guidelines to achieve the best results:
-* Brief but complete pauses at every section of the sample to avoid motion artifacts.
-* Significant overlap between pauses so that there is sufficient context for stitching frames together.
-* Methodical and consistent movement over the sample.  For example, start at the top left corner, then go all the way to the right, then down one step, then all the way to the left, down one step, etc., until the end of the sample is reached.  Again, brief overlapping pauses throughout will allow the best quality images to be generated.
-
-![DeepLIIF Website Demo](images/deepliif-stitch-demo-01.gif)
-
-## Cloud API Endpoints
-
-For small images, DeepLIIF can also be accessed programmatically through an endpoint by posting a multipart-encoded request containing the original image file, along with optional parameters including postprocessing thresholds:
-
-```
-POST /api/infer
-
-File Parameter:
-
-  img (required)
-    Image on which to run DeepLIIF.
-
-Query String Parameters:
-
-  resolution
-    Resolution used to scan the slide (10x, 20x, 40x). Default is 40x.
-
-  pil
-    If present, use Pillow to load the image instead of Bio-Formats. Pillow is
-    faster, but works only on common image types (png, jpeg, etc.).
-
-  slim
-    If present, return only the refined segmentation result image.
-
-  nopost
-    If present, do not perform postprocessing (returns only inferred images).
-
-  prob_thresh
-    Probability threshold used in postprocessing the inferred segmentation map
-    image. The segmentation map value must be above this value in order for a
-    pixel to be included in the final cell segmentation. Valid values are an
-    integer in the range 0-254. Default is 150.
-
-  size_thresh
-    Lower threshold for size gating the cells in postprocessing. Segmented
-    cells must have more pixels than this value in order to be included in the
-    final cell segmentation. Valid values are 0, a positive integer, or 'auto'.
-    'Auto' will try to automatically determine this lower bound for size gating
-    based on the distribution of detected cell sizes. Default is 'auto'.
-
-  size_thresh_upper
-    Upper threshold for size gating the cells in postprocessing.  Segmented
-    cells must have less pixels that this value in order to be included in the
-    final cell segmentation. Valid values are a positive integer or 'none'.
-    'None' will use no upper threshold in size gating. Default is 'none'.
-
-  marker_thresh
-    Threshold for the effect that the inferred marker image will have on the
-    postprocessing classification of cells as positive.  If any corresponding
-    pixel in the marker image for a cell is above this threshold, the cell will
-    be classified as being positive regardless of the values from the inferred
-    segmentation image. Valid values are an integer in the range 0-255, 'none',
-    or 'auto'. 'None' will not use the marker image during classification.
-    'Auto' will automatically determine a threshold from the marker image.
-    Default is 'none'.
-```
-
-For example, in Python:
-
-```python
-import os
-import json
-import base64
-from io import BytesIO
-
-import requests
-from PIL import Image
-
-# Use the sample images from the main DeepLIIF repo
-images_dir = './Sample_Large_Tissues'
-filename = 'ROI_1.png'
-
-root = os.path.splitext(filename)[0]
-
-res = requests.post(
-    url='https://deepliif.org/api/infer',
-    files={
-        'img': open(f'{images_dir}/{filename}', 'rb'),
-    },
-    params={
-        'resolution': '40x',
-    },
-)
-
-data = res.json()
-
-def b64_to_pil(b):
-    return Image.open(BytesIO(base64.b64decode(b.encode())))
-
-for name, img in data['images'].items():
-    with open(f'{images_dir}/{root}_{name}.png', 'wb') as f:
-        b64_to_pil(img).save(f, format='PNG')
-
-with open(f'{images_dir}/{root}_scoring.json', 'w') as f:
-    json.dump(data['scoring'], f, indent=2)
-print(json.dumps(data['scoring'], indent=2))
-```
-
-Note that since this is a single request to send the image and receive the results, processing must complete within the timeout period (typically about one minute).  If your request is receiving a 504 status code, please try a smaller image or install the `deepliif` package as detailed above to run the process locally.
-
-If you have previously run DeepLIIF on an image and want to postprocess it with different thresholds, the postprocessing routine can be called directly using the previously inferred results:
-
-```
-POST /api/postprocess
-
-File Parameters:
-
-  img (required)
-    Image on which DeepLIIF was run.
-
-  seg_img (required)
-    Inferred segmentation image previously generated by DeepLIIF.
-
-  marker_img (optional)
-    Inferred marker image previously generated by DeepLIIF.  If this is
-    omitted, then the marker image will not be used in classification.
-
-Query String Parameters:
-
-  resolution
-    Resolution used to scan the slide (10x, 20x, 40x). Default is 40x.
-
-  pil
-    If present, use Pillow to load the original image instead of Bio-Formats.
-    Pillow is faster, but works only on common image types (png, jpeg, etc.).
-    Pillow is always used to open the seg_img and marker_img files.
-
-  prob_thresh
-    Probability threshold used in postprocessing the inferred segmentation map
-    image. The segmentation map value must be above this value in order for a
-    pixel to be included in the final cell segmentation. Valid values are an
-    integer in the range 0-254. Default is 150.
-
-  size_thresh
-    Lower threshold for size gating the cells in postprocessing. Segmented
-    cells must have more pixels than this value in order to be included in the
-    final cell segmentation. Valid values are 0, a positive integer, or 'auto'.
-    'Auto' will try to automatically determine this lower bound for size gating
-    based on the distribution of detected cell sizes. Default is 'auto'.
-
-  size_thresh_upper
-    Upper threshold for size gating the cells in postprocessing.  Segmented
-    cells must have less pixels that this value in order to be included in the
-    final cell segmentation. Valid values are a positive integer or 'none'.
-    'None' will use no upper threshold in size gating. Default is 'none'.
-
-  marker_thresh
-    Threshold for the effect that the inferred marker image will have on the
-    postprocessing classification of cells as positive.  If any corresponding
-    pixel in the marker image for a cell is above this threshold, the cell will
-    be classified as being positive regardless of the values from the inferred
-    segmentation image. Valid values are an integer in the range 0-255, 'none',
-    or 'auto'. 'None' will not use the marker image during classification.
-    'Auto' will automatically determine a threshold from the marker image.
-    Default is 'none'. (If marker_img is not supplied, this has no effect.)
-```
-
-For example, in Python:
-
-```python
-import os
-import json
-import base64
-from io import BytesIO
-
-import requests
-from PIL import Image
-
-# Use the sample images from the main DeepLIIF repo
-images_dir = './Sample_Large_Tissues'
-filename = 'ROI_1.png'
-
-root = os.path.splitext(filename)[0]
-
-res = requests.post(
-    url='https://deepliif.org/api/infer',
-    files={
-        'img': open(f'{images_dir}/{filename}', 'rb'),
-        'seg_img': open(f'{images_dir}/{root}_Seg.png', 'rb'),
-        'marker_img': open(f'{images_dir}/{root}_Marker.png', 'rb'),
-    },
-    params={
-        'resolution': '40x',
-        'pil': True,
-        'size_thresh': 250,
-    },
-)
-
-data = res.json()
-
-def b64_to_pil(b):
-    return Image.open(BytesIO(base64.b64decode(b.encode())))
-
-for name, img in data['images'].items():
-    with open(f'{images_dir}/{root}_{name}.png', 'wb') as f:
-        b64_to_pil(img).save(f, format='PNG')
-
-with open(f'{images_dir}/{root}_scoring.json', 'w') as f:
-    json.dump(data['scoring'], f, indent=2)
-print(json.dumps(data['scoring'], indent=2))
-```
-
-## Synthetic Data Generation
-The first version of DeepLIIF model suffered from its inability to separate IHC positive cells in some large clusters,
-resulting from the absence of clustered positive cells in our training data. To infuse more information about the
-clustered positive cells into our model, we present a novel approach for the synthetic generation of IHC images using
-co-registered data. 
-We design a GAN-based model that receives the Hematoxylin channel, the mpIF DAPI image, and the segmentation mask and
-generates the corresponding IHC image. The model converts the Hematoxylin channel to gray-scale to infer more helpful
-information such as the texture and discard unnecessary information such as color. The Hematoxylin image guides the
-network to synthesize the background of the IHC image by preserving the shape and texture of the cells and artifacts in
-the background. The DAPI image assists the network in identifying the location, shape, and texture of the cells to
-better isolate the cells from the background. The segmentation mask helps the network specify the color of cells based 
-on the type of the cell (positive cell: a brown hue, negative: a blue hue).
-
-In the next step, we generate synthetic IHC images with more clustered positive cells. To do so, we change the 
-segmentation mask by choosing a percentage of random negative cells in the segmentation mask (called as Neg-to-Pos) and 
-converting them into positive cells. Some samples of the synthesized IHC images along with the original IHC image are 
-shown below.
-
-![IHC_Gen_image](docs/training/images/IHC_Gen.jpg)*Overview of synthetic IHC image generation. (a) A training sample 
-of the IHC-generator model. (b) Some samples of synthesized IHC images using the trained IHC-Generator model. The 
-Neg-to-Pos shows the percentage of the negative cells in the segmentation mask converted to positive cells.*
-
-We created a new dataset using the original IHC images and synthetic IHC images. We synthesize each image in the dataset 
-two times by setting the Neg-to-Pos parameter to %50 and %70. We re-trained our network with the new dataset. You can 
-find the new trained model [here](https://zenodo.org/record/4751737/files/DeepLIIF_Latest_Model.zip?download=1).
-
-## Registration
-To register the de novo stained mpIF and IHC images, you can use the registration framework in the 'Registration' 
-directory. Please refer to the README file provided in the same directory for more details.
-
-## Contributing Training Data
-To train DeepLIIF, we used a dataset of lung and bladder tissues containing IHC, hematoxylin, mpIF DAPI, mpIF Lap2, and 
-mpIF Ki67 of the same tissue scanned using ZEISS Axioscan. These images were scaled and co-registered with the fixed IHC 
-images using affine transformations, resulting in 1264 co-registered sets of IHC and corresponding multiplex images of 
-size 512x512. We randomly selected 575 sets for training, 91 sets for validation, and 598 sets for testing the model. 
-We also randomly selected and manually segmented 41 images of size 640x640 from recently released [BCDataset](https://sites.google.com/view/bcdataset) 
-which contains Ki67 stained sections of breast carcinoma with Ki67+ and Ki67- cell centroid annotations (for cell 
-detection rather than cell instance segmentation task). We split these tiles into 164 images of size 512x512; the test 
-set varies widely in the density of tumor cells and the Ki67 index. You can find this dataset [here](https://zenodo.org/record/4751737#.YKRTS0NKhH4).
-
-We are also creating a self-configurable version of DeepLIIF which will take as input any co-registered H&E/IHC and 
-multiplex images and produce the optimal output. If you are generating or have generated H&E/IHC and multiplex staining 
-for the same slide (de novo staining) and would like to contribute that data for DeepLIIF, we can perform 
-co-registration, whole-cell multiplex segmentation via [ImPartial](https://github.com/nadeemlab/ImPartial), train the 
-DeepLIIF model and release back to the community with full credit to the contributors.
-
-- [x] **Memorial Sloan Kettering Cancer Center** [AI-ready immunohistochemistry and multiplex immunofluorescence dataset](https://zenodo.org/record/4751737#.YKRTS0NKhH4) for breast, lung, and bladder cancers (**Nature Machine Intelligence'22**)
-- [x] **Moffitt Cancer Center** [AI-ready multiplex immunofluorescence and multiplex immunohistochemistry dataset](https://wiki.cancerimagingarchive.net/pages/viewpage.action?pageId=70226184) for head-and-neck squamous cell carcinoma (**MICCAI'23**)   
-
-## Support
-Please use the [GitHub Issues](https://github.com/nadeemlab/DeepLIIF/issues) tab for discussion, questions, or to report bugs related to DeepLIIF.
-
-## License
-© [Nadeem Lab](https://nadeemlab.org/) - DeepLIIF code is distributed under **Apache 2.0 with Commons Clause** license, 
-and is available for non-commercial academic purposes. 
-
-## Acknowledgments
-This code is inspired by [CycleGAN and pix2pix in PyTorch](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix).
-
-## Funding
-This work is funded by the 7-year NIH/NCI R37 MERIT Award ([R37CA295658](https://reporter.nih.gov/search/5dgSOlHosEKepkZEAS5_kQ/project-details/11018883#description)).
-
-## Reference
-If you find our work useful in your research or if you use parts of this code or our released dataset, please cite the following papers:
-```
-@article{ghahremani2022deep,
-  title={Deep learning-inferred multiplex immunofluorescence for immunohistochemical image quantification},
-  author={Ghahremani, Parmida and Li, Yanyun and Kaufman, Arie and Vanguri, Rami and Greenwald, Noah and Angelo, Michael and Hollmann, Travis J and Nadeem, Saad},
-  journal={Nature Machine Intelligence},
-  volume={4},
-  number={4},
-  pages={401--412},
-  year={2022},
-  publisher={Nature Publishing Group}
-}
-
-@article{ghahremani2022deepliifui,
-  title={DeepLIIF: An Online Platform for Quantification of Clinical Pathology Slides},
-  author={Ghahremani, Parmida and Marino, Joseph and Dodds, Ricardo and Nadeem, Saad},
-  journal={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
-  pages={21399--21405},
-  year={2022}
-}
-
-@article{ghahremani2023deepliifdataset,
-  title={An AI-Ready Multiplex Staining Dataset for Reproducible and Accurate Characterization of Tumor Immune Microenvironment},
-  author={Ghahremani, Parmida and Marino, Joseph and Hernandez-Prera, Juan and V. de la Iglesia, Janis and JC Slebos, Robbert and H. Chung, Christine and Nadeem, Saad},
-  journal={International Conference on Medical Image Computing and Computer-Assisted Intervention (MICCAI)},
-  volume={14225},
-  pages={704--713},
-  year={2023}
-}
-
-@article{nadeem2023ki67validationMTC,
-  author = {Nadeem, Saad and Hanna, Matthew G and Viswanathan, Kartik and Marino, Joseph and Ahadi, Mahsa and Alzumaili, Bayan and Bani, Mohamed-Amine and Chiarucci, Federico and Chou, Angela and De Leo, Antonio and Fuchs, Talia L and Lubin, Daniel J and Luxford, Catherine and Magliocca, Kelly and Martinez, Germán and Shi, Qiuying and Sidhu, Stan and Al Ghuzlan, Abir and Gill, Anthony J and Tallini, Giovanni and Ghossein, Ronald and Xu, Bin},
-  title = {Ki67 proliferation index in medullary thyroid carcinoma: a comparative study of multiple counting methods and validation of image analysis and deep learning platforms},
-  journal = {Histopathology},
-  volume = {83},
-  number = {6},
-  pages = {981--988},
-  year = {2023},
-  doi = {https://doi.org/10.1111/his.15048}
-}
-
-@article{zehra2024deepliifstitch,
-  author = {Zehra, Talat and Marino, Joseph and Wang, Wendy and Frantsuzov, Grigoriy and Nadeem, Saad},
-  title = {Rethinking Histology Slide Digitization Workflows for Low-Resource Settings},
-  journal = {International Conference on Medical Image Computing and Computer-Assisted Intervention (MICCAI)},
-  volume = {15004},
-  pages = {427--436},
-  year = {2024}
-}
-```
+使用本專案時，請一併遵守上游 `DeepLIIF` 的授權、模型來源與資料使用限制。

@@ -139,6 +139,7 @@ dmypy.json
 
 # Large generated artifacts and local data copies
 DeepLIIF_Latest_Model.zip
+dataset/
 analysis_outputs/deepliif_prediction_images/
 analysis_outputs/dnmt3a_cancer_mask_prediction_images/
 analysis_outputs/dnmt3a_cancer_mask_prediction_images.zip
